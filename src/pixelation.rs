@@ -34,10 +34,10 @@ pub fn pixelation(img: DynamicImage, vec_colors: Vec<Rgba<u8>>, cell_size: u32) 
 
     let cells_x = width / cell_size;
     let cells_y = height / cell_size;
-
+    let mut color_index = 0;
     for y in 0..cells_y {
         for x in 0..cells_x {
-            let mut color_index = 0;
+            
 
             for y2 in 0..cell_size {
                 for x2 in 0..cell_size {
@@ -50,12 +50,13 @@ pub fn pixelation(img: DynamicImage, vec_colors: Vec<Rgba<u8>>, cell_size: u32) 
                         let pixel =
                             Rgba([brightness as u8, brightness as u8, brightness as u8, 255]);
 
-                        img_out.put_pixel(x_cell, y_cell, pixel);
+                        img_out.put_pixel(x_cell, y_cell, color);
                     }
 
-                    color_index = (color_index + 1) % vec_colors.len();
+                    
                 }
             }
+            color_index = (color_index + 1) % vec_colors.len();
         }
     }
 
