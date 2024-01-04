@@ -1,10 +1,53 @@
-use image::{DynamicImage, GenericImageView, Rgba, RgbaImage};
+use image::*;
+use kurbo::*;
+#[derive(Clone,Debug)]
+pub struct Square {
+    x1: f32, 
+    y1: f32,
+    x2: f32, 
+    y2: f32,
+    x3: f32,
+    y3: f32,
+    x4: f32,
+    y4: f32
+}
+
+pub fn generate_squares(step: f32, img: DynamicImage) -> Vec<Square> {
+    let mut squares = Vec::new();
+    let (width, height) = img.dimensions();
+
+    let mut y = 0.0;
+    while y < height as f32{
+        let mut x = 0.0;
+        while x < width as f32 {
+            let s = Square {
+                x1: x, 
+                y1: y,
+                x2: x + step,
+                y2: y,
+                x3: x + step,
+                y3: y + step,
+                x4: x,
+                y4: y + step
+            };
+
+            squares.push(s);
+
+            x += step;
+        }
+
+        y += step;
+    }
+
+    squares
+}
 
 pub fn dominant_colors(img: DynamicImage) -> Vec<Rgba<u8>> {
     let (width, height) = img.dimensions();
-    let mut vec_colors = Vec::new();
+    let mut vec_colors_coordinats = Vec::new();
     let cell_size = 10;
 
+   
     for y in (0..height).step_by(cell_size) {
         for x in (0..width).step_by(cell_size) {
             let mut color_counts = std::collections::HashMap::new();
@@ -17,46 +60,65 @@ pub fn dominant_colors(img: DynamicImage) -> Vec<Rgba<u8>> {
             }
 
             if let Some((color, _)) = color_counts.iter().max_by_key(|(_, count)| *count) {
-                vec_colors.push(*color);
+                vec_colors_coordinats.push(*color);
             }
         }
     }
 
-    vec_colors
+    vec_colors_coordinats
 }
 
-pub fn pixelation(img: DynamicImage, vec_colors: Vec<Rgba<u8>>, cell_size: u32) -> DynamicImage {
+pub fn line(img: DynamicImage, cell_size: usize) -> Vec<kurbo::Line> {
     let (width, height) = img.dimensions();
+    let mut vec_line = Vec::new();
 
-    let mut img_out = RgbaImage::new(width, height);
+    //vertical
+    for i in (0..width).step_by(cell_size) {
+        let mut line_1 = Line::new(Point::new(i as f64,0.0), Point::new(i as f64,width as f64) );
+        vec_line.push(line_1);
+    }
+    //horizontal
+    for i in (0..height).step_by(cell_size) {
+        let mut line_1 = Line::new(Point::new(0.0,i as f64), Point::new(height as f64,i as f64) );
+        vec_line.push(line_1);
+    }
+    //last vertical
+    for i in (0..width).step_by(cell_size) {
+        let mut line_1 = Line::new(Point::new(width as f64,0.0), Point::new(width as f64,width as f64) );
+        vec_line.push(line_1);
+    }
+    //last horizontal
+    for i in (0..height).step_by(cell_size) {
+        let mut line_1 = Line::new(Point::new(0.0,height as f64), Point::new(height as f64,height as f64));
+        vec_line.push(line_1);
+    }
+    vec_line
+}
 
-    img_out.fill(0u8);
-
-    let cells_x = width / cell_size;
-    let cells_y = height / cell_size;
-    let mut color_index = 0;
-    for y in 0..cells_y {
-        for x in 0..cells_x {
-            
-
-            for y2 in 0..cell_size {
-                for x2 in 0..cell_size {
-                    let x_cell = x * cell_size + x2;
-                    let y_cell = y * cell_size + y2;
-
-                    if x_cell < width && y_cell < height {
-                        let color = vec_colors[color_index];
-                        let brightness = (color[0] as u32 + color[1] as u32 + color[2] as u32) / 3;
-                        let pixel =
-                            Rgba([brightness as u8, brightness as u8, brightness as u8, 255]);
-
-                        img_out.put_pixel(x_cell, y_cell, color);
-                    }
-
-                    
-                }
+pub fn paint_coordinats(square: Vec<Square>, color: Vec<Rgba<u8>>, img: DynamicImage, line: Vec<Line>)-> DynamicImage {
+    let (width, height) = img.dimensions();
+    let mut img_out = RgbaImage::new(width+1, height+1);
+    
+    //paint_colors
+    for c in 0..square.len() {
+        // println!("{:?}", square[c].x1);
+        for y in square[c].y1 as u32 ..square[c].y3 as u32 {
+            for x in square[c].x1 as u32 ..square[c].x3 as u32{
+              
+                img_out.put_pixel(x, y, color[c]);
+                
             }
-            color_index = (color_index + 1) % vec_colors.len();
+        }
+    }
+
+    // paint black_line
+    for i in 0..line.len() {
+        for y in (line[i].p0.y as u32)..=(line[i].p1.y as u32)  {
+            for x in (line[i].p0.x as u32)..=(line[i].p1.x as u32) {
+                
+                img_out.put_pixel(x, y, Rgba([0,0,0,255]));
+                
+            }
         }
     }
 

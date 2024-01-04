@@ -10,8 +10,10 @@ struct Img {
 fn main() {
    
     let string = Img::parse();
-    let img_in = image::open(string.img).unwrap();
-    let vec_colors = dominant_colors(img_in.clone());
-    let img_out = pixelation(img_in.clone(), vec_colors, 10);
+    let img_in = image::open(string.img.clone()).unwrap();
+    let vec_colors = dominant_colors(img_in.clone());    
+    let sqauare = generate_squares(10.0, image::open(string.img.clone()).unwrap());
+    let line = line(img_in.clone(), 10);
+    let img_out = paint_coordinats(sqauare, vec_colors.clone(), img_in.clone(), line.clone());
     img_out.save(r"C:\Project\Image\out_1.png").unwrap();
 }
