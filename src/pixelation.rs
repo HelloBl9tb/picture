@@ -1,6 +1,8 @@
+use std::fmt::LowerHex;
+
 use image::*;
 use kurbo::*;
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug,PartialEq)]
 pub struct Square {
     x1: f32, 
     y1: f32,
@@ -124,3 +126,65 @@ pub fn paint_coordinats(square: Vec<Square>, color: Vec<Rgba<u8>>, img: DynamicI
 
     DynamicImage::ImageRgba8(img_out)
 }
+
+pub fn format_color(sqauare: Vec<Square>, color: Vec<Rgba<u8>>, coordinats: String, format: String ) -> String {
+
+    let mut string = "".to_string();
+    // Format string in Square
+    let v: Vec<i32> = coordinats.split(',').map(|s| s.parse().unwrap())
+    .collect();
+    let sqauare_2 = Square {
+        x1: v[0] as f32, 
+        y1: v[1] as f32,
+        x2: v[2] as f32,
+        y2: v[3] as f32,
+        x3: v[4] as f32,
+        y3: v[5] as f32,
+        x4: v[6] as f32,
+        y4: v[7] as f32,
+    };
+    
+    let mut count = 0;
+    for a in 0..sqauare.len() {
+        if sqauare_2 == sqauare[a] {
+            count+= a as usize;
+            println!("Match") 
+        }
+    }
+        
+    // Format rgb in hex the coordinats
+    if format == "rgb".to_string() {
+        let color_1 = color[count].clone().to_rgb();
+        string.push('R');
+        string.push('g');
+        string.push('b');
+        string.push('(');
+        string.push('[');
+        for a in 0..3 {
+            for b in (color_1[a].to_string()).chars() {
+                string.push(b);
+            }
+
+            if a != 2 {
+                string.push(',');
+            }
+            
+        } 
+        string.push(')');
+        string.push(']');
+        
+    } else if format == "hex".to_string() {
+       
+        string.push('#');
+        for a in 0..3 {
+             let hex = format!("{:x}", color[count][a]);
+             for b in hex.to_uppercase().chars() {
+            string.push(b);
+             } 
+            
+        }
+            
+    }
+   
+   string
+} 
