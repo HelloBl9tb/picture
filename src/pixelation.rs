@@ -1,5 +1,3 @@
-use std::fmt::LowerHex;
-
 use image::*;
 use kurbo::*;
 #[derive(Clone,Debug,PartialEq)]
